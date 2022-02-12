@@ -1,5 +1,5 @@
 import 'dart:ffi';
-import 'dart:io';
+import 'dart:io' show Directory;
 import 'package:path/path.dart' as path;
 import './eth_bindings.dart' as pr;
 import 'package:ffi/ffi.dart';
@@ -7,61 +7,67 @@ import 'package:ffi/ffi.dart';
 const IF_NAMESIZE = 16;
 
 class SocketStruct {
-  int socket;
-  int ifrindex;
-  int srcMACAddress;
+  int socket = 0;
+  int ifrindex = 0;
+  int srcMACAddress = 0;
   String ifName;
 
-  SocketStruct(ifName) {
-    this.socket = 0;
-    this.ifrindex = 0;
-    this.srcMACAddress = 0;
-    this.ifName = ifName;
+  SocketStruct(this.ifName);
+
+  String toString() {
+    return "Socket=${this.socket}, ifrindex=${this.ifrindex}, srcMACAddress=${this.srcMACAddress}, ifname=${this.ifName}";
   }
 }
 
 class L2Ethernet {
-  final libraryPath =
-      path.join(Directory.current.path, 'eth_library', 'libeth.so');
-  late ethlib;
-  late SocketStruct myFD;
+  var libraryPath;
+  //  if (Platform.isMacOS) {
+  //   libraryPath =
+  //       path.join(Directory.current.path, 'eth_library', 'libeth.dylib');
+  // }
+  // if (Platform.isWindows) {
+  //   libraryPath =
+  //       path.join(Directory.current.path, 'eth_library', 'Debug', 'eth.dll');
+  // }
 
-  L2Ethernet(String interfaceName) {
-    this.myFD = SocketStruct(interfaceName);
-    this.ethlib = pr.NativeLibrary(DynamicLibrary.open(libraryPath));
+  var _ethlib;
+  SocketStruct myFD;
+
+  L2Ethernet._constructor(String interfaceName, dynamic this._ethlib)
+      : myFD = SocketStruct(interfaceName);
+
+  factory L2Ethernet(String interfaceName, String libraryPath) {
+    return L2Ethernet._constructor(
+        interfaceName, pr.NativeLibrary(DynamicLibrary.open(libraryPath)));
   }
 
   int getMACAddress() {
-    return srcMACAddress;
+    return myFD.srcMACAddress;
   }
 
   int open() {
-    // if (Platform.isMacOS) {
-    //   libraryPath =
-    //       path.join(Directory.current.path, 'eth_library', 'libeth.dylib');
-    // }
-    // if (Platform.isWindows) {
-    //   libraryPath =
-    //       path.join(Directory.current.path, 'eth_library', 'Debug', 'eth.dll');
-    // }
-    final ifname = calloc<Uint8>(IF_NAMESIZE);
+    final ifnamePtr = calloc<Uint8>(IF_NAMESIZE);
 
     for (int i = 0; i < myFD.ifName.length && i < IF_NAMESIZE; ++i) {
-      ifname[i] = myFD.ifName.codeUnitAt(i);
+      ifnamePtr[i] = myFD.ifName.codeUnitAt(i);
     }
-    myFD.socket = ethlib.socket_open(ifname);
-    calloc.free(ifname);
+    myFD.socket = _ethlib.socket_open(ifnamePtr);
+    myFD.ifrindex = _ethlib.get_ifrindex();
+    myFD.srcMACAddress = _ethlib.get_mac_addr();
+    calloc.free(ifnamePtr);
     return myFD.socket;
   }
 
   int close() {
-    int res = ethlib.socket_close(myFD.socket);
-    myFD.socket = 0;
-    return res;
+    return _ethlib.socket_close(myFD.socket);
   }
 
-  int send() {
-    print("Sending stuff here...");
-    return 0;
+  int send(int src_mac, int dest_mac, int ether_type, Pointer<Uint8> data,
+      int len, int flags) {
+    var res;
+    if (src_mac == 0) src_mac = myFD.srcMACAddress;
+    res = _ethlib.socket_send(
+        this.myFD.socket, src_mac, dest_mac, ether_type, data, len, flags);
+    return res;
   }
 }

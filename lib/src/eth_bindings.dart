@@ -53,6 +53,14 @@ class NativeLibrary {
       _lookup<ffi.NativeFunction<ffi.Uint64 Function()>>('get_mac_addr');
   late final _get_mac_addr = _get_mac_addrPtr.asFunction<int Function()>();
 
+  int get_ifrindex() {
+    return _get_ifrindex();
+  }
+
+  late final _get_ifrindexPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function()>>('get_ifrindex');
+  late final _get_ifrindex = _get_ifrindexPtr.asFunction<int Function()>();
+
   int socket_send(
     int sockfd,
     int src_mac,

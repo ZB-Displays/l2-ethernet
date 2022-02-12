@@ -2,6 +2,7 @@ LIBRARY   structs
 EXPORTS
     socket_open
     get_mac_addr
+    get_ifrindex
     socket_close
     socket_send
     

@@ -45,6 +45,11 @@ int socket_open(unsigned char *ifName)
 	return fd;
 }
 
+// Get my ifrindex
+unsigned long int get_ifrindex(void) {
+	return ifrindex;
+}
+
 // Get your own MAC address
 unsigned long int get_mac_addr(void)
 {
