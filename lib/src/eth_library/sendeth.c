@@ -16,39 +16,44 @@
 int ifrindex;
 unsigned long int src_mac;
 
-void main(int argc, char *argv[]) {
-    return;
+void main(int argc, char *argv[])
+{
+	return;
 }
 
+int socket_open(unsigned char *ifName)
+{
+	int fd;
+	struct ifreq if_idx;
+	struct ifreq if_mac;
 
-int socket_open(unsigned char *ifName) {
-    int fd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
-    struct ifreq if_idx;
-    struct ifreq if_mac;
+	fd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
 
-    // Get MAC address from source and destination
-    memset(&if_idx, 0, sizeof(struct ifreq));
-    strncpy(if_idx.ifr_name, ifName, IFNAMSIZ-1);
-    if (ioctl(fd, SIOCGIFINDEX, &if_idx) < 0)
-        perror("SIOCGIFINDEX");
-    ifrindex = if_idx.ifr_ifindex;
+	// Get MAC address from source and destination
+	memset(&if_idx, 0, sizeof(struct ifreq));
+	strncpy(if_idx.ifr_name, ifName, IFNAMSIZ - 1);
+	if (ioctl(fd, SIOCGIFINDEX, &if_idx) < 0)
+		perror("SIOCGIFINDEX");
+	ifrindex = if_idx.ifr_ifindex;
 
-    memset(&if_mac, 0, sizeof(struct ifreq));
-	strncpy(if_mac.ifr_name, ifName, IFNAMSIZ-1);
+	memset(&if_mac, 0, sizeof(struct ifreq));
+	strncpy(if_mac.ifr_name, ifName, IFNAMSIZ - 1);
 	if (ioctl(fd, SIOCGIFHWADDR, &if_mac) < 0)
-	    perror("SIOCGIFHWADDR");
+		perror("SIOCGIFHWADDR");
 	memcpy(&src_mac, if_mac.ifr_hwaddr.sa_data, 6);
 
-    return fd;
+	return fd;
 }
 
 // Get your own MAC address
-unsigned long int get_mac_addr(void) {
-    return src_mac;
+unsigned long int get_mac_addr(void)
+{
+	return src_mac;
 }
 
-int socket_close(int fd) {
-    return close(fd);
+int socket_close(int fd)
+{
+	return close(fd);
 }
 
 #define BUF_SIZ 1540
@@ -56,10 +61,9 @@ int socket_close(int fd) {
 int socket_send(int sockfd, unsigned long int src_mac, unsigned long int dest_mac, unsigned int ether_type, const unsigned char *data, int len, unsigned int flags)
 {
 	char sendbuf[BUF_SIZ];
-	struct ether_header *eh = (struct ether_header *) sendbuf;
+	struct ether_header *eh = (struct ether_header *)sendbuf;
 	int tx_len = 0;
 	struct sockaddr_ll socket_address;
-
 
 	/* Construct the Ethernet header */
 	memset(sendbuf, 0, BUF_SIZ);
@@ -82,7 +86,7 @@ int socket_send(int sockfd, unsigned long int src_mac, unsigned long int dest_ma
 
 	if (len + sizeof(struct ether_header) > BUF_SIZ)
 		len = BUF_SIZ - sizeof(struct ether_header);
-	memcpy(sendbuf+sizeof(struct ether_header), data, len);
+	memcpy(sendbuf + sizeof(struct ether_header), data, len);
 	tx_len += len;
 
 	/* Index of the network device */
@@ -98,5 +102,5 @@ int socket_send(int sockfd, unsigned long int src_mac, unsigned long int dest_ma
 	socket_address.sll_addr[5] = dest_mac & 0xFF;
 
 	/* Send packet */
-	return sendto(sockfd, sendbuf, tx_len, flags, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll));
+	return sendto(sockfd, sendbuf, tx_len, flags, (struct sockaddr *)&socket_address, sizeof(struct sockaddr_ll));
 }

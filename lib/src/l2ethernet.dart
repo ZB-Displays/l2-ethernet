@@ -6,17 +6,29 @@ import 'package:ffi/ffi.dart';
 
 const IF_NAMESIZE = 16;
 
+class SocketStruct {
+  int socket;
+  int ifrindex;
+  int srcMACAddress;
+  String ifName;
+
+  SocketStruct(ifName) {
+    this.socket = 0;
+    this.ifrindex = 0;
+    this.srcMACAddress = 0;
+    this.ifName = ifName;
+  }
+}
+
 class L2Ethernet {
-  String interfaceName;
-  int srcMACAddress = 0;
-  var libraryPath =
+  final libraryPath =
       path.join(Directory.current.path, 'eth_library', 'libeth.so');
-  var ethlib;
+  late ethlib;
+  late SocketStruct myFD;
 
-  int socket = 0;
-
-  L2Ethernet(String this.interfaceName) {
-    ethlib = pr.NativeLibrary(DynamicLibrary.open(libraryPath));
+  L2Ethernet(String interfaceName) {
+    this.myFD = SocketStruct(interfaceName);
+    this.ethlib = pr.NativeLibrary(DynamicLibrary.open(libraryPath));
   }
 
   int getMACAddress() {
@@ -34,20 +46,22 @@ class L2Ethernet {
     // }
     final ifname = calloc<Uint8>(IF_NAMESIZE);
 
-    for (int i = 0; i < interfaceName.length && i < IF_NAMESIZE; ++i) {
-      ifname[i] = interfaceName.codeUnitAt(i);
+    for (int i = 0; i < myFD.ifName.length && i < IF_NAMESIZE; ++i) {
+      ifname[i] = myFD.ifName.codeUnitAt(i);
     }
-    socket = ethlib.socket_open(ifname);
-    return socket;
+    myFD.socket = ethlib.socket_open(ifname);
+    calloc.free(ifname);
+    return myFD.socket;
   }
 
   int close() {
-    int res = ethlib.socket_close(socket);
-    socket = 0;
+    int res = ethlib.socket_close(myFD.socket);
+    myFD.socket = 0;
     return res;
   }
 
   int send() {
+    print("Sending stuff here...");
     return 0;
   }
 }
