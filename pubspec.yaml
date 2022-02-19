@@ -1,8 +1,9 @@
 name: l2ethernet
 version: 0.2.0
 
-homepage: https://hkubota.wordpress.com
+homepage: https://github.com/haraldkubota/l2-ethernet
 repository: https://github.com/haraldkubota/l2-ethernet
+issue_tracker: https://github.com/haraldkubota/l2-ethernet/issues
 
 description: Sending raw Ethernet frames in Dart via FFI. Sending only.
 
@@ -18,6 +19,8 @@ ffigen:
   headers:
     entry-points:
       - "lib/src/eth_library/sendeth.h"
+  llvm-path:
+    - "/usr/lib/llvm-13"
 
 dependencies:
   ffi: ^1.1.2
