@@ -22,3 +22,5 @@ doc/api/
 example/sendframe.exe
 
 .vscode/
+lib/x86_64/
+lib/aarch64/

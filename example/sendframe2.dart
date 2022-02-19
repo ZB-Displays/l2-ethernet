@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// export nic=eth0 or whatever NIC you use
 // Needs to run as root or via
 // sudo setcap 'cap_net_admin,cap_net_raw+ep' sendeth_detect.exe
 // Note that the Colorlight card send back a frame (from 11:22:33:44:55:66 to ff:ff:ff:ff:ff:ff)
@@ -15,13 +16,7 @@ import 'dart:io';
 // import 'dart:typed_data';
 // import 'dart:convert';
 import 'package:ffi/ffi.dart';
-import 'package:path/path.dart' as path;
-
-import '../lib/src/eth_bindings.dart' as pr;
-
-// From /usr/include/net/if.h
-// const ifName = 'eth'";
-const ifName = 'enp1s0';
+import '../lib/l2ethernet.dart';
 
 const columnCount = 128;
 const rowCount = 64;
@@ -68,10 +63,10 @@ void initFrames() {
 
 void calculateFrame5500Row(int t, int y) {
   for (int i = 0; i < columnCount; ++i) {
-    if (i == t) {
-      frameData5500[7 + 3 * i] = 255;
-      frameData5500[7 + 3 * i + 1] = 255;
-      frameData5500[7 + 3 * i + 2] = 255;
+    if (i == t || t == y || y == 2 * rowCount - t) {
+      frameData5500[7 + 3 * i] = 127;
+      frameData5500[7 + 3 * i + 1] = 127;
+      frameData5500[7 + 3 * i + 2] = 127;
     } else {
       frameData5500[7 + 3 * i] = 0;
       frameData5500[7 + 3 * i + 1] = t;
@@ -87,63 +82,47 @@ void deleteFrames() {
 }
 
 void main() async {
-  int n = 0;
-  // Open the dynamic library
-  var march = Process.runSync("uname", ["-m"]).stdout.trim();
-  print("march=$march");
-  var libraryPath =
-      path.join(Directory.current.path, '../lib/$march', 'libeth.so');
-  // if (Platform.isMacOS) {
-  //   libraryPath =
-  //       path.join(Directory.current.path, 'eth_library', 'libeth.dylib');
-  // }
-  // if (Platform.isWindows) {
-  //   libraryPath =
-  //       path.join(Directory.current.path, 'eth_library', 'Debug', 'eth.dll');
-  // }
-  final ethlib = pr.NativeLibrary(DynamicLibrary.open(libraryPath));
+  var ethName = Platform.environment["nic"];
+  if (ethName == null) {
+    print("Set nic environment variable first");
+    exit(20);
+  } else {
+    int n = 0;
+    var myl2eth = L2Ethernet(ethName);
+    myl2eth.open();
+    const src_mac = 0x222233445566;
+    const dest_mac = 0x112233445566;
+    const flags = 0;
 
-  final ifname = calloc<Uint8>(IF_NAMESIZE);
+    initFrames();
 
-  for (int i = 0; i < ifName.length; ++i) {
-    ifname[i] = ifName.codeUnitAt(i);
+    // Draw 128 frames, one vertical black line from left to right
+    // to see tearing or lack of smoothness
+    for (int k = 0; k < 10; ++k) {
+      await sweep(n, myl2eth, src_mac, dest_mac, flags);
+    }
+    deleteFrames();
   }
-
-  final socket = ethlib.socket_open(ifname);
-  // final macaddr = ethlib.get_mac_addr();
-  const src_mac = 0x222233445566;
-  const dest_mac = 0x112233445566;
-  const flags = 0;
-
-  initFrames();
-
-  // Draw 128 frames, one vertical black line from left to right
-  // to see tearing or lack of smoothness
-  for (int k = 0; k < 10; ++k) {
-    await sweep(n, ethlib, socket, src_mac, dest_mac, flags);
-  }
-  deleteFrames();
-  calloc.free(ifname);
 }
 
 const wait = true;
 const waitTime = 19;
 
-Future<void> sweep(int n, pr.NativeLibrary ethlib, int socket, int src_mac,
-    int dest_mac, int flags) async {
+Future<void> sweep(
+    int n, L2Ethernet l2, int src_mac, int dest_mac, int flags) async {
   for (int t = 0; t < 128; ++t) {
     // Send a brightness packet
 
-    n = ethlib.socket_send(socket, src_mac, dest_mac, 0x0a00 + brightness,
-        frameData0aff, frame0affDataLength, flags);
+    n = l2.send(src_mac, dest_mac, 0x0a00 + brightness, frameData0aff,
+        frame0affDataLength, flags);
 
     // Send one complete frame
 
     for (int y = 0; y < rowCount; ++y) {
       calculateFrame5500Row(t, y);
       frameData5500[0] = y;
-      n = ethlib.socket_send(socket, src_mac, dest_mac, 0x5500, frameData5500,
-          frame5500DataLength, flags);
+      n = l2.send(
+          src_mac, dest_mac, 0x5500, frameData5500, frame5500DataLength, flags);
     }
 
     // Without the following delay the end of the bottom row module flickers in the last line
@@ -152,8 +131,8 @@ Future<void> sweep(int n, pr.NativeLibrary ethlib, int socket, int src_mac,
 
     // Display frame
 
-    n = ethlib.socket_send(socket, src_mac, dest_mac, 0x0107, frameData0107,
-        frame0107DataLength, flags);
+    n = l2.send(
+        src_mac, dest_mac, 0x0107, frameData0107, frame0107DataLength, flags);
 
     // 20 fps, wait 50ms but subtract the 1ms from above
     if (wait) await Future.delayed(Duration(milliseconds: waitTime));
@@ -161,16 +140,16 @@ Future<void> sweep(int n, pr.NativeLibrary ethlib, int socket, int src_mac,
   for (int t = 127; t >= 0; --t) {
     // Send a brightness packet
 
-    n = ethlib.socket_send(socket, src_mac, dest_mac, 0x0a00 + brightness,
-        frameData0aff, frame0affDataLength, flags);
+    n = l2.send(src_mac, dest_mac, 0x0a00 + brightness, frameData0aff,
+        frame0affDataLength, flags);
 
     // Send one complete frame
 
     for (int y = 0; y < rowCount; ++y) {
       calculateFrame5500Row(t, y);
       frameData5500[0] = y;
-      n = ethlib.socket_send(socket, src_mac, dest_mac, 0x5500, frameData5500,
-          frame5500DataLength, flags);
+      n = l2.send(
+          src_mac, dest_mac, 0x5500, frameData5500, frame5500DataLength, flags);
     }
 
     // Without the following delay the end of the bottom row module flickers in the last line
@@ -179,8 +158,8 @@ Future<void> sweep(int n, pr.NativeLibrary ethlib, int socket, int src_mac,
 
     // Display frame
 
-    n = ethlib.socket_send(socket, src_mac, dest_mac, 0x0107, frameData0107,
-        frame0107DataLength, flags);
+    n = l2.send(
+        src_mac, dest_mac, 0x0107, frameData0107, frame0107DataLength, flags);
 
     // 20 fps, wait 50ms but subtract the 1ms from above
 

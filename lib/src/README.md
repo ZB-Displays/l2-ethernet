@@ -31,3 +31,10 @@ Alternatively (adjust the location of the dart binary as needed):
 $ sudo ~/dart/bin/dart ./sendframe.dart
 ```
 
+### Running tests
+
+There's 2 tests due to permissions needed to run:
+* l2ethernet_test.dart to test logic of the library but not opening interfaces
+* l2root_test.dart which send out packets (and runs tcpdump)
+
+Both need an environment variable `nic` set to the programs know what NIC to use.

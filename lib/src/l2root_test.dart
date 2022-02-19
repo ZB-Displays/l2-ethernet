@@ -7,18 +7,19 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import './l2ethernet.dart';
 
-const ethName = "eth0";
-
 void main() {
-  String libraryPath =
-      path.join(Directory.current.path, 'eth_library', 'libeth.so');
-
+  var ethName = Platform.environment["nic"] ?? "";
+  group('Library Basics', () {
+    test('Found nic env variable', () {
+      expect(ethName, isNot(equals("")));
+    });
+  });
   group('Raw socket ops (needs root)', () {
     test('Open and close socket', () {
-      var myl2eth = L2Ethernet(ethName, libraryPath);
+      var myl2eth = L2Ethernet(ethName);
       var res;
       res = myl2eth.open();
-      print("srcMACAddress=${myl2eth.myFD.srcMACAddress}");
+      print("srcMACAddress=${myl2eth.socketData.srcMACAddress}");
       expect(res, greaterThan(0));
       res = myl2eth.close();
       expect(res, equals(0));
@@ -29,7 +30,7 @@ void main() {
       const len = 100;
       var data = calloc<Uint8>(len);
 
-      var myl2eth = L2Ethernet(ethName, libraryPath);
+      var myl2eth = L2Ethernet(ethName);
       var res;
       for (var i = 0; i < len; ++i) data[i] = i + 32;
 

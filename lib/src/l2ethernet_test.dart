@@ -7,16 +7,15 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import './l2ethernet.dart';
 
-const ethName = "eth0";
-
 void main() {
-  String libraryPath =
-      path.join(Directory.current.path, 'eth_library', 'libeth.so');
-
+  var ethName = Platform.environment["nic"] ?? "";
   group('Library Basics', () {
+    test('Found nic env variable', () {
+      expect(ethName, isNot(equals("")));
+    });
     test('Can load library', () {
-      var myl2eth = L2Ethernet(ethName, libraryPath);
-      expect(myl2eth.myFD.toString(),
+      var myl2eth = L2Ethernet(ethName);
+      expect(myl2eth.socketData.toString(),
           equals("Socket=0, ifrindex=0, srcMACAddress=0, ifname=$ethName"));
       expect(myl2eth, isNot(equals(0)));
     });

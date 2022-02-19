@@ -1,5 +1,7 @@
-name: colorlighttest
-description: Colorlight Test
+name: l2ethernet
+version: 0.2.0
+
+description: Working with Ethernet frames in Dart. Sending only
 
 publish_to: none
 

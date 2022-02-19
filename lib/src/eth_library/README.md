@@ -7,4 +7,7 @@ This started as an example how to use FFI in Dart.
 ```
 $ cmake .
 $ make
+$ march=$(uname -m)
+$ mkdir ../../$march
+$ cp libeth* ../../$march
 ```
