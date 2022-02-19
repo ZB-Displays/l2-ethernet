@@ -20,7 +20,7 @@ import 'package:path/path.dart' as path;
 import '../lib/src/eth_bindings.dart' as pr;
 
 // From /usr/include/net/if.h
-const ifName = 'enp3s0f0';
+const ifName = 'eth0';
 const columnCount = 128;
 const rowCount = 64;
 
@@ -67,13 +67,13 @@ void initFrames() {
 void calculateFrame5500Row(int t, int y) {
   for (int i = 0; i < columnCount; ++i) {
     if (i == t) {
-      frameData5500[7 + 3 * i] = 0;
-      frameData5500[7 + 3 * i + 1] = 0;
-      frameData5500[7 + 3 * i + 2] = 0;
+      frameData5500[7 + 3 * i] = 255;
+      frameData5500[7 + 3 * i + 1] = 255;
+      frameData5500[7 + 3 * i + 2] = 255;
     } else {
-      frameData5500[7 + 3 * i] = 128 - i;
+      frameData5500[7 + 3 * i] = 0;
       frameData5500[7 + 3 * i + 1] = t;
-      frameData5500[7 + 3 * i + 2] = (y % 16) << 4;
+      frameData5500[7 + 3 * i + 2] = 0;
     }
   }
 }
@@ -84,7 +84,7 @@ void deleteFrames() {
   calloc.free(frameData5500);
 }
 
-void main() {
+void main() async {
   int n = 0;
   // Open the dynamic library
   var libraryPath =
@@ -115,7 +115,18 @@ void main() {
 
   // Draw 128 frames, one vertical black line from left to right
   // to see tearing or lack of smoothness
+  for (int k = 0; k < 10; ++k) {
+    await sweep(n, ethlib, socket, src_mac, dest_mac, flags);
+  }
+  deleteFrames();
+  calloc.free(ifname);
+}
 
+const wait = true;
+const waitTime = 99;
+
+Future<void> sweep(int n, pr.NativeLibrary ethlib, int socket, int src_mac,
+    int dest_mac, int flags) async {
   for (int t = 0; t < 128; ++t) {
     // Send a brightness packet
 
@@ -133,7 +144,34 @@ void main() {
 
     // Without the following delay the end of the bottom row module flickers in the last line
 
-    sleep(Duration(milliseconds: 1));
+    if (wait) await Future.delayed(Duration(milliseconds: 1));
+
+    // Display frame
+
+    n = ethlib.socket_send(socket, src_mac, dest_mac, 0x0107, frameData0107,
+        frame0107DataLength, flags);
+
+    // 20 fps, wait 50ms but subtract the 1ms from above
+    if (wait) await Future.delayed(Duration(milliseconds: waitTime));
+  }
+  for (int t = 127; t >= 0; --t) {
+    // Send a brightness packet
+
+    n = ethlib.socket_send(socket, src_mac, dest_mac, 0x0a00 + brightness,
+        frameData0aff, frame0affDataLength, flags);
+
+    // Send one complete frame
+
+    for (int y = 0; y < rowCount; ++y) {
+      calculateFrame5500Row(t, y);
+      frameData5500[0] = y;
+      n = ethlib.socket_send(socket, src_mac, dest_mac, 0x5500, frameData5500,
+          frame5500DataLength, flags);
+    }
+
+    // Without the following delay the end of the bottom row module flickers in the last line
+
+    if (wait) await Future.delayed(Duration(milliseconds: 1));
 
     // Display frame
 
@@ -142,8 +180,6 @@ void main() {
 
     // 20 fps, wait 50ms but subtract the 1ms from above
 
-    sleep(Duration(milliseconds: 49));
+    if (wait) await Future.delayed(Duration(milliseconds: waitTime));
   }
-  deleteFrames();
-  calloc.free(ifname);
 }

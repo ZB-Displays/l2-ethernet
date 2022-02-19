@@ -67,7 +67,7 @@ class L2Ethernet {
     var res;
     if (src_mac == 0) src_mac = myFD.srcMACAddress;
     res = _ethlib.socket_send(
-        this.myFD.socket, src_mac, dest_mac, ether_type, data, len, flags);
+        myFD.socket, src_mac, dest_mac, ether_type, data, len, flags);
     return res;
   }
 }
