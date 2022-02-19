@@ -1,18 +1,23 @@
 name: l2ethernet
 version: 0.2.0
 
-description: Working with Ethernet frames in Dart. Sending only
+homepage: https://hkubota.wordpress.com
+repository: https://github.com/haraldkubota/l2-ethernet
+
+description: Sending raw Ethernet frames in Dart via FFI. Sending only.
 
 publish_to: none
+platforms:
+  linux:
 
 environment:
   sdk: ">=2.16.0  <3.0.0"
 
 ffigen:
-  output: "eth_bindings.dart"
+  output: "lib/src/eth_bindings.dart"
   headers:
     entry-points:
-      - "eth_library/sendeth.h"
+      - "lib/src/eth_library/sendeth.h"
 
 dependencies:
   ffi: ^1.1.2

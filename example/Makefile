@@ -1,3 +1,3 @@
-sendframe2.exe:	sendframe2.dart
+sendframes.exe:	sendframes.dart
 	dart compile exe $<
 	sudo setcap 'cap_net_admin,cap_net_raw+ep' $@
