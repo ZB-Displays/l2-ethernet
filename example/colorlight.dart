@@ -50,8 +50,9 @@ void initFrames() {
   frameData5500[6] = 0x88;
 }
 
-// Calculate the next line in a pixel data frame (0x5500)
-
+/// Calculate the next line in a pixel data frame (0x5500)
+/// [row] is the row to calculate,
+/// [frame] is the number of animation frame
 void calculateFrame5500Row(int frame, int row) {
   for (int col = 0; col < columnCount; ++col) {
     if (col == frame || frame == row || row == 2 * rowCount - frame) {
@@ -66,23 +67,22 @@ void calculateFrame5500Row(int frame, int row) {
   }
 }
 
-// Cleanup
-
+/// Cleanup the buffers for the Ethernet frames
 void deleteFrames() {
   calloc.free(frameData0107);
   calloc.free(frameData0aff);
   calloc.free(frameData5500);
 }
 
+/// Open the raw socket, make a sweep sequence, repeat 10 times
 void main() async {
   var ethName = Platform.environment["nic"];
   if (ethName == null) {
     print("Set nic environment variable first");
     exit(20);
   } else {
-    int n = 0;
-
     var myl2eth = L2Ethernet(ethName);
+
     myl2eth.open();
 
     const src_mac = 0x222233445566;
@@ -96,17 +96,22 @@ void main() async {
     // to see tearing or lack of smoothness
 
     for (int k = 0; k < 10; ++k) {
-      await sweep(n, myl2eth, src_mac, dest_mac, flags);
+      await sweep(myl2eth, src_mac, dest_mac, flags);
     }
+
+    myl2eth.close();
     deleteFrames();
   }
 }
 
+const fps = 50;
 const wait = true;
-const waitTime = 19; // 19+1 ms wait, so 50fps
+const waitTime = (1000 ~/ fps - 1);
 
-Future<void> sweep(
-    int n, L2Ethernet l2, int src_mac, int dest_mac, int flags) async {
+/// Make one sweep sequence
+///
+Future<void> sweep(L2Ethernet l2, int src_mac, int dest_mac, int flags) async {
+  int n;
   for (int t = 0; t < columnCount; ++t) {
     // Send a brightness packet
 
@@ -132,6 +137,7 @@ Future<void> sweep(
         src_mac, dest_mac, 0x0107, frameData0107, frame0107DataLength, flags);
 
     // 20 fps, wait 50ms but subtract the 1ms from above
+
     if (wait) await Future.delayed(Duration(milliseconds: waitTime));
   }
 }
