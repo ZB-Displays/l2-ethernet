@@ -1,5 +1,5 @@
-name: colorlighttest
-description: Colorlight Test
+name: l2ethernetexamples
+description: Example using the l2ethernet package
 
 publish_to: none
 
