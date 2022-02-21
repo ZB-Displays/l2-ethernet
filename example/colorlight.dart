@@ -9,7 +9,8 @@
 import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
-import '../lib/l2ethernet.dart';
+// import '../lib/l2ethernet.dart';
+import 'package:l2ethernet/l2ethernet.dart';
 
 // My LED matrix size
 

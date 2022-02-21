@@ -1,11 +1,12 @@
 name: l2ethernet
-version: 0.2.0
+version: 0.2.1
 
 homepage: https://github.com/haraldkubota/l2-ethernet
 repository: https://github.com/haraldkubota/l2-ethernet
 issue_tracker: https://github.com/haraldkubota/l2-ethernet/issues
 
-description: Sending raw Ethernet frames in Dart via FFI. Sending only.
+description: >-
+  Sending raw Ethernet frames in Dart via FFI. Usable for generating WOL packets or non-standard protocols running on Ethernet. Sending only. Linux only.
 
 publish_to: https://pub.dev
 

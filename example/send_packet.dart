@@ -21,8 +21,8 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'dart:io';
-// import 'package:l2ethernet/l2ethernet.dart';
-import '../lib/l2ethernet.dart';
+import 'package:l2ethernet/l2ethernet.dart';
+// import '../lib/l2ethernet.dart';
 
 void main() {
   final ethName = Platform.environment["nic"] ?? "eth0";
