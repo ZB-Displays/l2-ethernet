@@ -8,8 +8,6 @@ issue_tracker: https://github.com/haraldkubota/l2-ethernet/issues
 description: >-
   Sending raw Ethernet frames in Dart via FFI. Usable for generating WOL packets or non-standard protocols running on Ethernet. Sending only. Linux only.
 
-publish_to: https://pub.dev
-
 platforms:
   linux:
 
@@ -23,10 +21,6 @@ ffigen:
       - "lib/src/eth_library/sendeth.h"
   llvm-path:
     - "/usr/lib/llvm-13"
-
-assets:
-  - "aarch64/libeth.so"
-  - lib/x86_64/
 
 dependencies:
   ffi: ^1.1.2
