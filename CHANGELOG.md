@@ -1,5 +1,10 @@
-## 0.2.0
+# 0.2.1
 
- - Works on ARM64 and x86_64 on Linux
- - Send-only
- - Add example program
+* Fix small issues the analyzer at pub.dev found
+* Updated examples to use a package directly (since now a package exists)
+
+# 0.2.0
+
+* Works on ARM64 and x86_64 on Linux
+* Send-only
+* Add example program
