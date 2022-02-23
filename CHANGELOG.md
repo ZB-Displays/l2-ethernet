@@ -1,3 +1,7 @@
+* 0.2.2
+
+* Make the path of libeth.so relative to the module (i.e. don't use the CWD)
+
 # 0.2.1
 
 * Fix small issues the analyzer at pub.dev found

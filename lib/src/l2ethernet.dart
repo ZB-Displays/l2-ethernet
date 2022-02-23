@@ -33,9 +33,7 @@ class L2Ethernet {
   /// Needs only [interfaceName] (e.g. "eth0")
   factory L2Ethernet(String interfaceName) {
     var march = Process.runSync("uname", ["-m"]).stdout.trim();
-    var libraryPath =
-        path.join(Directory.current.path, 'lib/$march', 'libeth.so');
-
+    var libraryPath = '../lib/$march/libeth.so';
     return L2Ethernet._constructor(
         interfaceName, pr.NativeLibrary(DynamicLibrary.open(libraryPath)));
   }
