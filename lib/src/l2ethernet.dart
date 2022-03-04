@@ -3,6 +3,7 @@ import 'dart:io' show Directory, Process;
 import 'package:path/path.dart' as path;
 import './eth_bindings.dart' as pr;
 import 'package:ffi/ffi.dart';
+import 'dart:isolate';
 
 const IF_NAMESIZE = 16;
 
@@ -27,15 +28,27 @@ class L2Ethernet {
   var _ethlib;
   SocketStruct socketData;
 
-  L2Ethernet._constructor(String interfaceName, dynamic this._ethlib)
+  L2Ethernet(String interfaceName, dynamic this._ethlib)
       : socketData = SocketStruct(interfaceName);
 
   /// Needs only [interfaceName] (e.g. "eth0")
-  factory L2Ethernet(String interfaceName) {
+  static Future<L2Ethernet> setup(String interfaceName) async {
     var march = Process.runSync("uname", ["-m"]).stdout.trim();
-    var libraryPath = '../lib/$march/libeth.so';
-    return L2Ethernet._constructor(
-        interfaceName, pr.NativeLibrary(DynamicLibrary.open(libraryPath)));
+    // print('march=$march');
+    var uri = await Isolate.resolvePackageUri(
+        Uri.parse('package:l2ethernet/$march/libeth.so'));
+    // if (uri == null) {
+    //   print('uri is null');
+    // } else {
+    //   print('uri=${uri.path}');
+    // }
+
+    if (uri == null) {
+      throw FormatException("Cannot find file libeth.so (got null)");
+    } else {
+      return L2Ethernet(
+          interfaceName, pr.NativeLibrary(DynamicLibrary.open(uri.path)));
+    }
   }
 
   /// Get the original source MAC address

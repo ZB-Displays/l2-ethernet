@@ -22,9 +22,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'dart:io';
 import 'package:l2ethernet/l2ethernet.dart';
-// import '../lib/l2ethernet.dart';
 
-void main() {
+void main() async {
   final ethName = Platform.environment["nic"] ?? "eth0";
   const src_mac = 0x222233445566;
   const dest_mac = 0x112233445566;
@@ -34,7 +33,7 @@ void main() {
 
   print("Preparing buffer of $len bytes");
 
-  final myl2eth = L2Ethernet(ethName);
+  final myl2eth = await L2Ethernet.setup(ethName);
   for (var i = 0; i < len; ++i) data[i] = i + 32;
 
   print("Opening the socket");

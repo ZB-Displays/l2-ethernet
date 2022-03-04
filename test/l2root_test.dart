@@ -14,8 +14,8 @@ void main() {
     });
   });
   group('Raw socket ops (needs root)', () {
-    test('Open and close socket', () {
-      var myl2eth = L2Ethernet(ethName);
+    test('Open and close socket', () async {
+      var myl2eth = await L2Ethernet.setup(ethName);
       var res;
       res = myl2eth.open();
       // print("srcMACAddress=${myl2eth.socketData.srcMACAddress}");
@@ -29,7 +29,7 @@ void main() {
       const len = 100;
       var data = calloc<Uint8>(len);
 
-      var myl2eth = L2Ethernet(ethName);
+      var myl2eth = await L2Ethernet.setup(ethName);
       var res;
       for (var i = 0; i < len; ++i) data[i] = i + 32;
 

@@ -25,4 +25,3 @@ Sorry, no support from my side for those.
 * Receiving frames is not currently implemented.
 * This is nor performance optimized: A single frame is sent out synchronously. If performance is required, [sendmmsg()](https://man7.org/linux/man-pages/man2/sendmmsg.2.html) should be used.
 * Only Linux supported and the shared library is only available for x86_64 and aarch64. It's very simple to compile the library though (see [buildme.sh](https://github.com/haraldkubota/l2-ethernet/blob/main/lib/src/eth_library/buildme.sh)).
-* The package depends on finding the shared library. I have not yet mastered the method.

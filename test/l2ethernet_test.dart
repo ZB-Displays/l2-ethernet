@@ -8,8 +8,8 @@ void main() {
     test('Found nic env variable', () {
       expect(ethName, isNot(equals("")));
     });
-    test('Can load library', () {
-      var myl2eth = L2Ethernet(ethName);
+    test('Can load library', () async {
+      var myl2eth = await L2Ethernet.setup(ethName);
       expect(myl2eth.socketData.toString(),
           equals("Socket=0, ifrindex=0, srcMACAddress=0, ifname=$ethName"));
       expect(myl2eth, isNot(equals(0)));
