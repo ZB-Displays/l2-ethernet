@@ -30,7 +30,37 @@ to be.
 
 This is actually simple as the C layer is very short. I added a
 [buildme.sh](https://github.com/haraldkubota/l2-ethernet/blob/main/lib/src/eth_library/buildme.sh)
-script. It's that simple.
+script. It's that simple:
+```
+❯ cd lib/src/eth_library
+❯ ./buildme.sh
+-- The C compiler identification is GNU 11.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/harald/git/l2-ethernet/lib/src/eth_library
+[ 25%] Building C object CMakeFiles/eth_library.dir/sendeth.c.o
+[ 50%] Linking C shared library libeth.so
+[ 50%] Built target eth_library
+[ 75%] Building C object CMakeFiles/sendeth_test.dir/sendeth.c.o
+[100%] Linking C executable sendeth_test
+[100%] Built target sendeth_test
+```
+and the result is in ./lib/x86\_64/ (if compiled on x86\_64)
+
+Now you can run the test program:
+```
+❯ dart pub get
+❯ make
+dart compile exe -o send_packet.exe example/send_packet.dart
+Info: Compiling with sound null safety
+Generated: /home/harald/git/l2-ethernet/send_packet.exe
+sudo setcap 'cap_net_admin,cap_net_raw+ep' send_packet.exe
+```
 
 ## macOS, Windows, Android, iOS
 
