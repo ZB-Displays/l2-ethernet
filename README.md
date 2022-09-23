@@ -76,6 +76,7 @@ Sorry, no support from my side for those.
 - Only Linux supported and the shared library is only available for x86_64 and
   aarch64. It's very simple to compile the library though (see
   [buildme.sh](https://github.com/haraldkubota/l2-ethernet/blob/main/lib/src/eth_library/buildme.sh)).
+- 32 bit ARM seems to not work (see [here](https://github.com/haraldkubota/l2-ethernet/issues/1)
 
 ## Note on libeth.so for Dart exe and aot
 
